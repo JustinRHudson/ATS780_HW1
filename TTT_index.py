@@ -87,8 +87,8 @@ def retrieve_OLR_data() -> tuple[np.ndarray,np.ndarray,np.ndarray,np.ndarray]:
     lats = nc_data.variables['lat'][:]
     lons = nc_data.variables['lon'][:]
     #get the indices needed to refine them
-    lat_si = np.where(lats == -40)[0][0]
-    lat_ei = np.where(lats == 10)[0][0]
+    lat_ei = np.where(lats == -40)[0][0]
+    lat_si = np.where(lats == 10)[0][0]
     lon_si = np.where(lons == 0)[0][0]
     lon_ei = np.where(lons == 80)[0][0]
     #now refine everything and tet the OLR
@@ -130,14 +130,14 @@ def retrieve_OLR_clim() -> tuple[np.ndarray,np.ndarray,np.ndarray]:
     lats = nc_data.variables['lat'][:]
     lons = nc_data.variables['lon'][:]
     #get the indices needed to refine them
-    lat_si = np.where(lats == -40)[0][0]
-    lat_ei = np.where(lats == 10)[0][0]
+    lat_ei = np.where(lats == -40)[0][0]
+    lat_si = np.where(lats == 10)[0][0]
     lon_si = np.where(lons == 0)[0][0]
     lon_ei = np.where(lons == 80)[0][0]
     #now refine everything and tet the OLR
     lats = lats[lat_si:lat_ei]
     lons = lons[lon_si:lon_ei]
-    olr = ma.getdata(nc_data.variables['olr'][lat_si:lat_ei,lon_si:lon_ei])
+    olr = ma.getdata(nc_data.variables['olr'][:,lat_si:lat_ei,lon_si:lon_ei])
     #replace bad OLR values with nan's
     olr[np.where(olr < -9999)] = np.nan
     #close the .nc file
@@ -147,7 +147,7 @@ def retrieve_OLR_clim() -> tuple[np.ndarray,np.ndarray,np.ndarray]:
 
     return lats,lons,olr
 
-def get_OLR_anomalies(olr_data:np.ndarray,olr_clim:np.ndarray) -> np.ndarray:
+def get_OLR_anomalies(olr_data:np.ndarray,olr_clim:np.ndarray,olr_dates:np.ndarray) -> np.ndarray:
     '''
         Calculate the OLR anomalies relative to the 1981-2010 mean and return
         them as an array.
@@ -155,8 +155,20 @@ def get_OLR_anomalies(olr_data:np.ndarray,olr_clim:np.ndarray) -> np.ndarray:
         Returns the olr anomalies with shape (time,lat,lon)
     '''
 
-    #do subtraction to get the anomalies
-    olr_anoms = olr_data - olr_clim
+    #make a ref date for the anomaly calculation
+    ref_date = dt.datetime(2001,1,1)
+    #convert olr dates to a pseudo 2001 state, Feb 29th becomes March 1st
+    anom_dates = []
+    for i in range(len(olr_dates)):
+        if olr_dates[i].month == 2 and olr_dates[i].day == 29:
+            anom_dates.append(dt.datetime(2001,3,1))
+        else:
+            anom_dates.append(dt.datetime(2001,olr_dates[i].month,olr_dates[i].day))
+    #calculate the anomalies based on the correct day
+    olr_anoms = olr_data[:]
+    for i in range(len(olr_dates)):
+        day_dif = (anom_dates[i] - ref_date).days
+        olr_anoms[i] = olr_data[i] - olr_clim[day_dif]
 
     return olr_anoms
 
@@ -315,7 +327,7 @@ def make_ttt_file(file_name:str,TTT_index:np.ndarray,dates:np.ndarray,ttt_days:n
     ttt_file.write('# Year, Month, Day, Index Value, Event Day\n')
     #loop to write in the rest of the file
     for i in range(len(TTT_index)):
-        ttt_file.write(f'{dates[i].year},{dates[i].month},{dates[i].day},{TTT_index[i]},{ttt_days[i]}\n')
+        ttt_file.write(f'{dates[i].year},{dates[i].month},{dates[i].day},{TTT_index[i]:.3f},{ttt_days[i]}\n')
     #close the file
     ttt_file.close()
 
@@ -332,7 +344,7 @@ def main() -> None:
     olr_dates,olr_lats,olr_lons,olr = retrieve_OLR_data()
     _,_,olr_clim = retrieve_OLR_clim()
     #get the OLR anomalies
-    olr_anoms = get_OLR_anomalies(olr,olr_clim)
+    olr_anoms = get_OLR_anomalies(olr,olr_clim,olr_dates)
     #get the values in the boxes
     E1,E2 = get_Ebox_values(olr_anoms,olr_lats,olr_lons)
     W1,W2 = get_Wbox_values(olr_anoms,olr_lats,olr_lons)
