@@ -57,10 +57,10 @@ def download_ltm_data(download_tries:int = 0) -> None:
             os.chdir(root)
         except:
             print('Download Failed, Retrying.')
-            os.chdir(root)
             #delete the failed download file if it exists
             if os.path.isfile('olr.day.ltm.1981-2010.nc'):
                 os.remove('olr.day.ltm.1981-2010.nc')
+            os.chdir(root)
             #retry with the number of download tries incremented by 1
             download_ltm_data(download_tries=download_tries+1)
     else:
@@ -91,10 +91,10 @@ def download_daily_data(download_tries:int = 0) -> None:
             os.chdir(root)
         except:
             print('Download Failed, Retrying.')
-            os.chdir(root)
             #delete the failed download file if it exists
             if os.path.isfile('olr.day.mean.nc'):
                 os.remove('olr.day.mean.nc')
+            os.chdir(root)
             #retry with the number of download tries incremented by 1
             download_ltm_data(download_tries=download_tries+1)
     else:
