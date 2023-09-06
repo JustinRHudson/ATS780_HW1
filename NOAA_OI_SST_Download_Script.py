@@ -63,16 +63,22 @@ def make_download_request(year:int,download_tries:int = 0) -> None:
     if year < 1981 or year > 2023:
         raise ValueError("Invalid Year Input Received")
 
-    try:
-        print(f'Downloading data for {year}.')
-        urlretrieve(url_base + f'{year}.nc',f'NOAA_OISST_Anomaly_{year}.nc')
-        print(f'Data downloaded for {year}.')
-        os.chdir(root) #go back to root is successful
-    except:
-        os.chdir(root) #go back to root if failed
-        print(f'Error downloading data for {year}, retrying.')
-        make_download_request(year,download_tries=download_tries+1) #retry if the request fails for some reason
-    
+    if not os.path.isfile(f'NOAA_OISST_Anomaly_{year}.nc'):
+        try:
+            print(f'Downloading data for {year}.')
+            urlretrieve(url_base + f'{year}.nc',f'NOAA_OISST_Anomaly_{year}.nc')
+            print(f'Data downloaded for {year}.')
+            os.chdir(root) #go back to root is successful
+        except:
+            #delete the failed download file
+            if os.path.isfile(f'NOAA_OISST_Anomaly_{year}.nc'):
+                os.remove(f'NOAA_OISST_Anomaly_{year}.nc')
+            os.chdir(root) #go back to root if failed
+            print(f'Error downloading data for {year}, retrying.')
+            make_download_request(year,download_tries=download_tries+1) #retry if the request fails for some reason
+    else:
+        print(f"NOAA OISST Anomaly File Already Exists for {year}.")
+        
     return None
 
 def download_request_loop() -> None:
