@@ -30,4 +30,6 @@ for regularization.
 - Daily Mean Interpolated OLR from NOAA PSL (1979 - Present)
 - 1981-2010 Mean Interpolated OLR from NOAA PSL
 - OLR MJO Index (OMI) from NOAA PSL (01/01/1979 - 12/31/2022)
-- 
+- q850, u850, v850, z200, surface pressure and total precip from ERA5 (01/01/1979-12/31/2022)
+- NOAA OISST Anomalies from NOAA PSL (01/01/1981-12/31/2022)
+- OLR Derived TTT Index based on Ratna et al. 2013
