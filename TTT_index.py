@@ -254,7 +254,7 @@ def calculate_index(E1_vals:np.ndarray,E2_vals:np.ndarray,W1_vals:np.ndarray,W2_
     term_a = 0.4 * ((E1_vals+E2_vals)/2.0)
     term_b = 0.6 * ((W1_vals+W2_vals)/2.0)
     #put it all together
-    ttt_index = term_a + term_b
+    ttt_index = term_a - term_b
 
     return ttt_index
 
@@ -264,19 +264,25 @@ def calculate_index(E1_vals:np.ndarray,E2_vals:np.ndarray,W1_vals:np.ndarray,W2_
     of a TTT
 '''
 
-def index_std_and_mean(TTT_index:np.ndarray) -> tuple[np.ndarray,np.ndarray]:
+def index_std_and_mean(TTT_index:np.ndarray,TTT_dates:np.ndarray) -> tuple[np.ndarray,np.ndarray]:
     '''
-        Calcuates the mean and std deviation of the TTT index.
+        Calcuates the mean and std deviation of the TTT index, but only for 
+        days in austral summer (Oct - May)
 
         Return order is mean,std. dev.
     '''
+    #make a subet of my index
+    TTT_subset = TTT_index[:]
+    for i in range(len(TTT_dates)):
+        if TTT_dates[i].month < 10 and TTT_dates[i].month > 5:
+            TTT_subset[i] = np.nan
 
-    TTT_index_mean = np.nanmean(TTT_index)
-    TTT_index_std = np.nanstd(TTT_index)
+    TTT_index_mean = np.nanmean(TTT_subset)
+    TTT_index_std = np.nanstd(TTT_subset)
 
     return TTT_index_mean,TTT_index_std
 
-def determine_ttt_days(TTT_index:np.ndarray) -> np.ndarray:
+def determine_ttt_days(TTT_index:np.ndarray,TTT_dates:np.ndarray) -> np.ndarray:
     '''
         Determine which days are TTT days by seeing which days are more than
         2 standard deviations above the mean for my TTT index.
@@ -286,11 +292,11 @@ def determine_ttt_days(TTT_index:np.ndarray) -> np.ndarray:
     '''
 
     #get the mean and std. dev.
-    index_mean,index_std = index_std_and_mean(TTT_index)
+    index_mean,index_std = index_std_and_mean(TTT_index,TTT_dates)
 
     #find all values that are greater than 2 std. dev. from mean
     ttt_peak_days = np.zeros(len(TTT_index))
-    ttt_peak_days[np.where(TTT_index > (index_mean+2.*index_std))] = 1
+    ttt_peak_days[np.where(TTT_index > (index_mean+(2.*index_std)))] = 1
 
     #possible TTT days w/in 5 days of each other will be consolidated into a
     #single event with the day with the highest index value being considered
@@ -301,9 +307,9 @@ def determine_ttt_days(TTT_index:np.ndarray) -> np.ndarray:
             if 1 in ttt_peak_days[i-5:i] or 1 in ttt_peak_days[i+1:i+5]: #can't include i in the search
                 ttt_range = TTT_index[i-5:i+5]
                 #find where the maximum occurs
-                range_max_ind = np.where(ttt_range == np.nanmax(ttt_range))[0][0]
+                range_max = np.nanmax(ttt_range)
                 #check if it is i
-                if range_max_ind == 5: #i would be 5 here
+                if range_max == TTT_index[i]: #i would be 5 here
                     #zero out the non i days and make i a 1
                     ttt_peak_days[i-5:i+5] = 0
                     ttt_peak_days[i] = 1
@@ -351,7 +357,7 @@ def main() -> None:
     #calculate the index
     ttt_index = calculate_index(E1,E2,W1,W2)
     #get the ttt_day array
-    ttt_days = determine_ttt_days(ttt_index)
+    ttt_days = determine_ttt_days(ttt_index,olr_dates)
     #write the data/index to a file
     make_ttt_file(ttt_index_file,ttt_index,olr_dates,ttt_days)
 
