@@ -160,6 +160,213 @@ def make_v850_request() -> None:
 
     return None
 
+def make_u500_request() -> None:
+    '''
+        Requests ERA5 u500 data from 1979-2023 over 10N-40S, 0-80E
+    '''
+
+    #navigate to the data folder
+    create_data_folder()
+    os.chdir(data_path)
+
+    #check if the file already exists if not make the request
+    if not os.path.isfile(data_path + '/ERA5_u500.nc'):
+        c = cdsapi.Client()
+
+        c.retrieve(
+            'reanalysis-era5-pressure-levels',
+            {
+                'product_type': 'reanalysis',
+                'format': 'netcdf',
+                'variable': [
+                    'u_component_of_wind',
+                ],
+                'pressure_level': '500',
+                'year': [
+                    '1979', '1980', '1981',
+                    '1982', '1983', '1984',
+                    '1985', '1986', '1987',
+                    '1988', '1989', '1990',
+                    '1991', '1992', '1993',
+                    '1994', '1995', '1996',
+                    '1997', '1998', '1999',
+                    '2000', '2001', '2002',
+                    '2003', '2004', '2005',
+                    '2006', '2007', '2008',
+                    '2009', '2010', '2011',
+                    '2012', '2013', '2014',
+                    '2015', '2016', '2017',
+                    '2018', '2019', '2020',
+                    '2021', '2022',
+                ],
+                'month': [
+                    '01', '02', '03',
+                    '04', '05', '10',
+                    '11', '12',
+                ],
+                'day': [
+                    '01', '02', '03',
+                    '04', '05', '06',
+                    '07', '08', '09',
+                    '10', '11', '12',
+                    '13', '14', '15',
+                    '16', '17', '18',
+                    '19', '20', '21',
+                    '22', '23', '24',
+                    '25', '26', '27',
+                    '28', '29', '30',
+                    '31',
+                ],
+                'time': '12:00',
+                'area': [
+                    0, 0, -50,
+                    80,
+                ],
+            },
+            'ERA5_u500.nc')
+
+    os.chdir(root)
+
+    return None
+
+def make_v500_request() -> None:
+    '''
+        Requests ERA5 v500 data from 1979-2023 over 10N-40S, 0-80E
+    '''
+
+    #navigate to the data folder
+    create_data_folder()
+    os.chdir(data_path)
+
+    #check if the file already exists if not make the request
+    if not os.path.isfile(data_path + '/ERA5_v500.nc'):
+        c = cdsapi.Client()
+
+        c.retrieve(
+            'reanalysis-era5-pressure-levels',
+            {
+                'product_type': 'reanalysis',
+                'format': 'netcdf',
+                'variable': [
+                    'v_component_of_wind',
+                ],
+                'pressure_level': '500',
+                'year': [
+                    '1979', '1980', '1981',
+                    '1982', '1983', '1984',
+                    '1985', '1986', '1987',
+                    '1988', '1989', '1990',
+                    '1991', '1992', '1993',
+                    '1994', '1995', '1996',
+                    '1997', '1998', '1999',
+                    '2000', '2001', '2002',
+                    '2003', '2004', '2005',
+                    '2006', '2007', '2008',
+                    '2009', '2010', '2011',
+                    '2012', '2013', '2014',
+                    '2015', '2016', '2017',
+                    '2018', '2019', '2020',
+                    '2021', '2022',
+                ],
+                'month': [
+                    '01', '02', '03',
+                    '04', '05', '10',
+                    '11', '12',
+                ],
+                'day': [
+                    '01', '02', '03',
+                    '04', '05', '06',
+                    '07', '08', '09',
+                    '10', '11', '12',
+                    '13', '14', '15',
+                    '16', '17', '18',
+                    '19', '20', '21',
+                    '22', '23', '24',
+                    '25', '26', '27',
+                    '28', '29', '30',
+                    '31',
+                ],
+                'time': '12:00',
+                'area': [
+                    0, 0, -50,
+                    80,
+                ],
+            },
+            'ERA5_v500.nc')
+
+    os.chdir(root)
+
+    return None
+
+def make_w500_request() -> None:
+    '''
+        Requests ERA5 w500 data from 1979-2023 over 10N-40S, 0-80E
+    '''
+
+    #navigate to the data folder
+    create_data_folder()
+    os.chdir(data_path)
+
+    #check if the file already exists if not make the request
+    if not os.path.isfile(data_path + '/ERA5_w500.nc'):
+        c = cdsapi.Client()
+
+        c.retrieve(
+            'reanalysis-era5-pressure-levels',
+            {
+                'product_type': 'reanalysis',
+                'format': 'netcdf',
+                'variable': [
+                    'vertical_velocity',
+                ],
+                'pressure_level': '500',
+                'year': [
+                    '1979', '1980', '1981',
+                    '1982', '1983', '1984',
+                    '1985', '1986', '1987',
+                    '1988', '1989', '1990',
+                    '1991', '1992', '1993',
+                    '1994', '1995', '1996',
+                    '1997', '1998', '1999',
+                    '2000', '2001', '2002',
+                    '2003', '2004', '2005',
+                    '2006', '2007', '2008',
+                    '2009', '2010', '2011',
+                    '2012', '2013', '2014',
+                    '2015', '2016', '2017',
+                    '2018', '2019', '2020',
+                    '2021', '2022',
+                ],
+                'month': [
+                    '01', '02', '03',
+                    '04', '05', '10',
+                    '11', '12',
+                ],
+                'day': [
+                    '01', '02', '03',
+                    '04', '05', '06',
+                    '07', '08', '09',
+                    '10', '11', '12',
+                    '13', '14', '15',
+                    '16', '17', '18',
+                    '19', '20', '21',
+                    '22', '23', '24',
+                    '25', '26', '27',
+                    '28', '29', '30',
+                    '31',
+                ],
+                'time': '12:00',
+                'area': [
+                    0, 0, -50,
+                    80,
+                ],
+            },
+            'ERA5_w500.nc')
+
+    os.chdir(root)
+
+    return None
+
 def make_z200_request() -> None:
     '''
         Requests ERA5 z200 data from 1979-2023 over 10N-40S, 0-80E
@@ -366,7 +573,7 @@ def make_precip_request() -> None:
                         80,
                     ],
                 },
-                f'/ERA5_precip_{tod_dict[i]}.nc')
+                f'ERA5_precip_{tod_dict[i]}.nc')
 
     os.chdir(root)
 
@@ -451,6 +658,15 @@ def main() -> None:
     print('Request Complete')
     print('Starting v850 request')
     make_v850_request()
+    print('Request Complete')
+    print('Starting u500 Request')
+    make_u500_request()
+    print('Request Complete')
+    print('Starting v500 Request')
+    make_v500_request()
+    print('Request Complete')
+    print('Starting w500 request')
+    make_w500_request()
     print('Request Complete')
     print('Starting z200 request')
     make_z200_request()
