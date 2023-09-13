@@ -505,80 +505,6 @@ def make_q850_request() -> None:
 
     return None
 
-def make_precip_request() -> None:
-    '''
-        Requests ERA5 q850 data from 1979-2023 over 10N-40S, 0-80E
-    '''
-
-    #navigate to the data folder
-    create_data_folder()
-    os.chdir(data_path)
-
-    #make a dictionary for the times of day
-    tod_dict = {0:'00',1:'01',2:'02',3:'03',4:'04',5:'05',6:'06',7:'07',8:'08',9:'09',10:'10',11:'11',12:'12',13:'13',14:'14',15:'15',16:'16',17:'17',18:'18',19:'19',20:'20',21:'21',22:'22',23:'23'}
-
-    #check if the file already exists if not make the request
-    for i in range(len(tod_dict)):
-        if not os.path.isfile(data_path + f'/ERA5_precip_{tod_dict[i]}.nc'):
-            c = cdsapi.Client()
-
-            c.retrieve(
-                'reanalysis-era5-single-levels',
-                {
-                    'product_type': 'reanalysis',
-                    'format': 'netcdf',
-                    'variable': [
-                        'total_precipitation',
-                    ],
-                    'month': [
-                        '01', '02', '03',
-                        '04', '05', '10',
-                        '11', '12',
-                    ],
-                    'day': [
-                        '01', '02', '03',
-                        '04', '05', '06',
-                        '07', '08', '09',
-                        '10', '11', '12',
-                        '13', '14', '15',
-                        '16', '17', '18',
-                        '19', '20', '21',
-                        '22', '23', '24',
-                        '25', '26', '27',
-                        '28', '29', '30',
-                        '31',
-                    ],
-                    'year': [
-                        '1979', '1980', '1981',
-                        '1982', '1983', '1984',
-                        '1985', '1986', '1987',
-                        '1988', '1989', '1990',
-                        '1991', '1992', '1993',
-                        '1994', '1995', '1996',
-                        '1997', '1998', '1999',
-                        '2000', '2001', '2002',
-                        '2003', '2004', '2005',
-                        '2006', '2007', '2008',
-                        '2009', '2010', '2011',
-                        '2012', '2013', '2014',
-                        '2015', '2016', '2017',
-                        '2018', '2019', '2020',
-                        '2021', '2022',
-                    ],
-                    'time': [
-                        f'{tod_dict[i]}:00',
-                    ],
-                    'area': [
-                        0, 0, -50,
-                        80,
-                    ],
-                },
-                f'ERA5_precip_{tod_dict[i]}.nc')
-
-    os.chdir(root)
-
-    return None
-
 def make_surfP_request() -> None:
     '''
         Requests ERA5 q850 data from 1979-2023 over 10N-40S, 0-80E
@@ -673,9 +599,6 @@ def main() -> None:
     print('Request Complete')
     print('Starting q850 request')
     make_q850_request()
-    print('Request Complete')
-    print('Starting precip request')
-    make_precip_request()
     print('Request Complete')
     print('Starting Surface Pressure Request')
     make_surfP_request()
