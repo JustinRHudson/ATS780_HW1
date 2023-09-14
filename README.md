@@ -20,7 +20,9 @@ have been mixed.
 
 The goal of this project is to try and classify whether or not a TTT event is
 occurring based on the values from a modified version of the Ratna et al. 2013
-index and data from ERA5 as well the OLR MJO Index (OMI). 
+index and data from ERA5 as well the OLR MJO Index (OMI). Then see how much skill
+the MJO related information adds to our prediction by comparing it against a
+uniform random variable.
 
 ### Data Used
 - Daily Mean Interpolated OLR from NOAA PSL (1979 - Present)
