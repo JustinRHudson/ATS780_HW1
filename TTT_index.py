@@ -272,7 +272,7 @@ def index_std_and_mean(TTT_index:np.ndarray,TTT_dates:np.ndarray) -> tuple[np.nd
         Return order is mean,std. dev.
     '''
     #make a subet of my index
-    TTT_subset = TTT_index[:]
+    TTT_subset = np.copy(TTT_index)
     for i in range(len(TTT_dates)):
         if TTT_dates[i].month < 10 and TTT_dates[i].month > 5:
             TTT_subset[i] = np.nan
