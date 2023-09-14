@@ -155,7 +155,7 @@ def process_era5_data(file:str,key:str,box:list) -> tuple[np.ndarray,np.ndarray]
     e5_time = Dataset(file).variables['time'][:]
     os.chdir(root)
     #convert the time to dates
-    e5_dates = np.array([dt.datetime(1800,1,1) + dt.timedelta(hours = int(hr)) for hr in e5_time])
+    e5_dates = np.array([dt.datetime(1900,1,1) + dt.timedelta(hours = int(hr)-12) for hr in e5_time])
     #get the climatology
     e5_clim = make_era5_climatology(file,key)
     #get the anomalies
@@ -185,8 +185,45 @@ def open_ttt_index() -> tuple[np.ndarray]:
     ttt_day_bool = ttt_index_file[:,4]
     #convert the year,month,day into the actual date
     ttt_dates = np.array([dt.datetime(int(year[i]),int(month[i]),int(day[i])) for i in range(len(year))])
+    #limit to just austral summer Oct - May
+    index_val_summer = []
+    ttt_day_bool_summer = []
+    ttt_dates_summer = []
+    for i in range(len(ttt_dates)):
+        if ttt_dates[i].month >= 10 or ttt_dates[i].month <= 5:
+            index_val_summer.append(index_val[i])
+            ttt_day_bool_summer.append(ttt_day_bool[i])
+            ttt_dates_summer.append(ttt_dates[i])
+    
 
-    return ttt_dates,index_val,ttt_day_bool
+    return np.array(ttt_dates_summer),np.array(index_val_summer),np.array(ttt_day_bool_summer)
+
+def get_ttt_index_climatology(ttt_dates:np.ndarray,ttt_index_values:np.ndarray) -> np.ndarray:
+    '''
+        Gets the daily climatology mean of my index to serve as a baseline for
+        my random forest model
+    '''
+
+    ref_dates = np.array([dt.datetime(2001,1,1) + dt.timedelta(days = i) for i in range(365)])
+    clim_vals = np.empty(365)
+    clim_counts = np.empty(365)
+
+    #loop through the actual dates and fill in my climatology array
+    for i in range(len(ttt_dates)):
+        if ttt_dates[i].month == 2 and ttt_dates[i].day == 29:
+            use_date = dt.datetime(2001,3,1)
+        else:
+            use_date = dt.datetime(2001,ttt_dates[i].month,ttt_dates[i].day)
+        clim_ind = np.where(ref_dates == use_date)[0][0]
+        if not np.isnan(ttt_index_values[i]):
+            clim_vals[clim_ind] += ttt_index_values[i]
+            clim_counts[clim_ind] += 1
+    
+    ttt_clim = clim_vals / clim_counts
+    ttt_clim[np.where(clim_counts == 0)] = np.nan
+    ttt_clim[np.where(np.abs(ttt_clim >= 100))] = np.nan
+    
+    return clim_vals / clim_counts
 
 #functions for the MJO Index
 #first a function to determine the phase of the MJO based on the OMI
@@ -262,7 +299,7 @@ def open_mjo_index() -> tuple[np.ndarray]:
     return omi_dates,omi_amp,omi_phase
 
 #now let's make a function to make my csv
-def csv_writer(file_name:str,doys:np.ndarray,ttt_index_vals:np.ndarray,ttt_day_bool:np.ndarray,
+def csv_writer(file_name:str,doys:np.ndarray,dates:np.ndarray,ttt_index_vals:np.ndarray,ttt_clim:np.ndarray,ttt_day_bool:np.ndarray,
                omi_amp:np.ndarray,omi_phase:np.ndarray,q850:np.ndarray,z200_b1:np.ndarray,
                z200_b2:np.ndarray,u850:np.ndarray,v850_b1:np.ndarray,v850_b2:np.ndarray,
                surfp_b1:np.ndarray,surfp_b2:np.ndarray,w500:np.ndarray,random_var:np.ndarray) -> None:
@@ -271,10 +308,10 @@ def csv_writer(file_name:str,doys:np.ndarray,ttt_index_vals:np.ndarray,ttt_day_b
     '''
     os.chdir(data_path)
     f = open(file_name,'w')
-    f.write('# DOY,TTT_INDEX_VAL,TTT_DAY_BOOL,OMI_AMP,OMI_PHASE,Q850,Z200_B1,Z200_B2,U850,V850_B1,V850_B2,SURF_PRES_B1,SURF_PRES_B2,W500,RAND_VAR\n')
+    f.write('DOY,YEAR,MONTH,DAY,TTT_INDEX_VAL,TTT_INDEX_VAL_1D,TTT_INDEX_CLIM,TTT_DAY_BOOL,OMI_AMP,OMI_PHASE,Q850,Z200_B1,Z200_B2,U850,V850_B1,V850_B2,SURF_PRES_B1,SURF_PRES_B2,W500,RAND_VAR\n')
     for i in range(len(doys)):
-        if not np.isnan(ttt_index_vals[i]):
-            f.write(f'{doys[i]},{ttt_index_vals[i]},{ttt_day_bool[i]},{omi_amp[i]},{omi_phase[i]},{q850[i]},{z200_b1[i]},{z200_b2[i]},{u850[i]},{v850_b1[i]},{v850_b2[i]},{surfp_b1[i]},{surfp_b2[i]},{w500[i]},{random_var[i]}\n')
+        if not np.isnan(ttt_index_vals[i]) and not np.isnan(q850[i]) and not np.isnan(ttt_clim[int(doys[i])-1]) and (dates[i].month >= 10 or dates[i].month <= 5):
+            f.write(f'{doys[i]},{dates[i].year},{dates[i].month},{dates[i].day},{ttt_index_vals[i]},{ttt_index_vals[i-1]},{ttt_clim[int(doys[i])-1]},{ttt_day_bool[i]},{omi_amp[i]},{omi_phase[i]},{q850[i]},{z200_b1[i]},{z200_b2[i]},{u850[i]},{v850_b1[i]},{v850_b2[i]},{surfp_b1[i]},{surfp_b2[i]},{w500[i]},{random_var[i]}\n')
     f.close()
 
     return None
@@ -283,7 +320,8 @@ def csv_writer(file_name:str,doys:np.ndarray,ttt_index_vals:np.ndarray,ttt_day_b
 def main() -> None:
     #first let's get the TTT index and MJO index done
     print('Processing TTT Data')
-    _,ttt_index_values,ttt_event_bool = open_ttt_index()
+    ttt_dates,ttt_index_values,ttt_event_bool = open_ttt_index()
+    ttt_clim = get_ttt_index_climatology(ttt_dates,ttt_index_values)
     print('Processing OMI Data')
     _,omi_amp,omi_phase = open_mjo_index()
     #now let's do the various era5 boxes
@@ -308,12 +346,30 @@ def main() -> None:
     #get the doy data
     doys = doy_calc(e5_dates)
     #make a random uniform variable of the same length
-    rand_var = np.random.uniform(0,100,len(doys))
-    #get the indices where TTT_index_values are not_nan
+    rand_var = np.random.randint(0,100,len(doys))
 
-    #now let's write to my csv file
-    print('Writing to TTT_DATA.csv')
-    csv_writer('TTT_DATA.csv',doys,ttt_index_values,ttt_event_bool,omi_amp,omi_phase,q850,z200_b1,z200_b2,u850,v850_b1,v850_b2,surfp_b1,surfp_b2,w500,rand_var)
+    print('Writing to TTT_CLASSIFY.csv')
+    #now limit to just days where TTT_BOOL is 1 and a few other random days in the winter
+    ev_dates = ttt_dates[np.where(ttt_event_bool == 1)]
+    random_dates = []
+    while(1):
+        ran_date = dt.datetime(1979,1,2) + dt.timedelta(days = np.random.randint(0,16071))
+        if (ran_date.month <= 5 or ran_date.month >= 10) and ran_date not in ev_dates:
+            random_dates.append(ran_date)
+        if len(random_dates) == len(ev_dates)*10:
+            break
+    #get the indices matching the dates
+    for i in range(len(ev_dates)):
+        random_dates.append(ev_dates[i])
+    random_dates = np.array(random_dates)
+    ifrd = []
+    for i in range(len(random_dates)):
+        matching_ind = np.where(ttt_dates == random_dates[i])[0][0]
+        ifrd.append(matching_ind)
+    ifrd = np.array(ifrd)
+
+
+    csv_writer('TTT_CLASSIFY.csv',doys[ifrd],ttt_dates[ifrd],ttt_index_values[ifrd],ttt_clim,ttt_event_bool[ifrd],omi_amp[ifrd],omi_phase[ifrd],q850[ifrd],z200_b1[ifrd],z200_b2[ifrd],u850[ifrd],v850_b1[ifrd],v850_b2[ifrd],surfp_b1[ifrd],surfp_b2[ifrd],w500[ifrd],rand_var[ifrd])
 
     return None
 
