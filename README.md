@@ -18,18 +18,13 @@ it has been speculated that the MJO may influence the intensity and timing of
 TTTs, results however in understanding or even proving such a teleconnection
 have been mixed.
 
-The goal of this project is to try and predict a modified version of the Ratna 
-et al. 2013 TTT Index which utilizes only OLR utilizing a random forest. My 
-metric for success with be the mean squared error (MSE) between predicted TTT
-index values and the actual values for that date. Because a secondary goal of
-this project is to quantify the usefullness of MJO metrics on predicting TTT
-intensity Lease Absolute Shrinkage and Selectrion Operator (LASSO) will be used
-for regularization.
+The goal of this project is to try and classify whether or not a TTT event is
+occurring based on the values from a modified version of the Ratna et al. 2013
+index and data from ERA5 as well the OLR MJO Index (OMI). 
 
 ### Data Used
 - Daily Mean Interpolated OLR from NOAA PSL (1979 - Present)
 - 1981-2010 Mean Interpolated OLR from NOAA PSL
 - OLR MJO Index (OMI) from NOAA PSL (01/01/1979 - 12/31/2022)
-- q850, u850, v850, z200, surface pressure and total precip from ERA5 (01/01/1979-12/31/2022)
-- NOAA OISST Anomalies from NOAA PSL (01/01/1981-12/31/2022)
+- q850, u850, v850, z200, surface pressure, and w500 from ERA5 (01/01/1979-12/31/2022)
 - OLR Derived TTT Index based on Ratna et al. 2013
